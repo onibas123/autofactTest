@@ -45,12 +45,36 @@
                 
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
 
-                    <li class="nav-item">
-                        <a class="nav-link active" id="form-tab" data-toggle="tab" href="#form" role="tab" aria-controls="form" aria-selected="true">Formulario</a>
-                    </li>
+                    <?php
+                        $this->db->select('DATE_FORMAT(answers.created, "%m-%Y") as month_year');
+                        $this->db->from('answers');
+                        $this->db->where('users_id', $this->session->userdata('user_id'));
+                        $this->db->order_by('created', 'desc');
+                        $this->db->limit(1);
+                        $res = $this->db->get()->result_array();
+
+                        if(!empty($res[0]['month_year']))
+                        {
+                            if(date('m-Y') != $res[0]['month_year'])
+                            { ?>
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="form-tab" data-toggle="tab" href="#form" role="tab" aria-controls="form" aria-selected="true">Formulario</a>
+                                </li>    
+                            <?php 
+                            }
+                        }
+                        else
+                        {
+                        ?>
+                            <li class="nav-item">
+                                <a class="nav-link active" id="form-tab" data-toggle="tab" href="#form" role="tab" aria-controls="form" aria-selected="true">Formulario</a>
+                            </li>
+                        <?php
+                        }
+                        ?>
 
                     <li class="nav-item">
-                        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#sent" role="tab" aria-controls="sent" aria-selected="false">Enviados</a>
+                        <a class="nav-link" id="sent-tab" data-toggle="tab" href="#sent" role="tab" aria-controls="sent" aria-selected="false">Enviados</a>
                     </li>
                     <?php
                     if($this->session->userdata("roles_id") == 1)
@@ -176,7 +200,33 @@
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(drawChart);
         $(document).ready(function() {
-            $("#form-tab").trigger("click");
+            <?php
+
+            if(!empty($res[0]['month_year']))
+            {
+                //echo '<h1>'.$res[0]['month_year'].'</h1>';
+                if(date('m-Y') != $res[0]['month_year'])
+                { ?>
+                    $("#form-tab").trigger("click");  
+                <?php 
+                }
+                else
+                {?>
+                    $("#sent-tab").trigger("click");
+                <?php
+                }
+            }
+            else
+            {
+            ?>
+                $("#form-tab").trigger("click");
+            <?php
+            }
+            ?>
+
+            
+
+
             loadSent();
         });
 
@@ -233,6 +283,7 @@
                                 tbody += '<td>'+response[i]['number']+'</td>';
                                 tbody += '<td>'+response[i]['question']+'</td>';
                                 tbody += '<td>'+response[i]['answer']+'</td>';
+                                tbody += '<td>'+response[i]['name']+'</td>';
                                 tbody += '<td>'+response[i]['created']+'</td>';
                                 tbody += '</tr>';
                             }
@@ -259,6 +310,7 @@
                                 tbody += '<td>'+response[i]['number']+'</td>';
                                 tbody += '<td>'+response[i]['question']+'</td>';
                                 tbody += '<td>'+response[i]['answer']+'</td>';
+                                tbody += '<td>'+response[i]['name']+'</td>';
                                 tbody += '<td>'+response[i]['created']+'</td>';
                                 tbody += '</tr>';
                             }
@@ -271,49 +323,57 @@
             }
         }
 
-        function drawChart() {
+        function drawChart() 
+        {
+            <?php
+            if($this->session->userdata("roles_id") == 1)
+            {
+                //validacion por rol admin solo puede ver el pie chart
+            ?>
+                $.ajax({
+                    url: '<?php echo base_url();?>index.php/FormsController/count_answers',
+                    dataType: 'json',
+                    success: function(response)
+                    {
+                        
+                        let SI = 0;
+                        let NO = 0;
+                        let MAS = 0;
 
-            $.ajax({
-                url: '<?php echo base_url();?>index.php/FormsController/count_answers',
-                dataType: 'json',
-                success: function(response)
-                {
-                    
-                    let SI = 0;
-                    let NO = 0;
-                    let MAS = 0;
+                        if(response['SI'] != null)
+                            SI = response['SI'][0]['count_answer'];
+                        
+                        if(response['NO'] != null && response['NO'].length > 0)
+                            NO = response['NO'][0]['count_answer'];
 
-                    if(response['SI'] != null)
-                        SI = response['SI'][0]['count_answer'];
-                    
-                    if(response['NO'] != null && response['NO'].length > 0)
-                        NO = response['NO'][0]['count_answer'];
+                        if(response['MAS'] != null && response['MAS'].length > 0)
+                            MAS = response['MAS'][0]['count_answer'];
 
-                    if(response['MAS'] != null && response['MAS'].length > 0)
-                        MAS = response['MAS'][0]['count_answer'];
+                        SI = parseInt(SI);
+                        NO = parseInt(NO);
+                        MAS = parseInt(MAS);
 
-                    SI = parseInt(SI);
-                    NO = parseInt(NO);
-                    MAS = parseInt(MAS);
+                        //por tiempo no alcanzo a parsear los datos asi q lo dejo en duro...
 
-                    //por tiempo no alcanzo a parsear los datos asi q lo dejo en duro...
+                        var data = google.visualization.arrayToDataTable([
+                            ['Pregunta', 'Cantidad'],
+                            ['SI',     SI],
+                            ['NO',      NO],
+                            ['Más o Menos',  MAS]
+                        ]);
 
-                    var data = google.visualization.arrayToDataTable([
-                        ['Pregunta', 'Cantidad'],
-                        ['SI',     SI],
-                        ['NO',      NO],
-                        ['Más o Menos',  MAS]
-                    ]);
+                            var options = {
+                            title: 'Gráfica de "¿La información es correcta?"'
+                            };
 
-                        var options = {
-                        title: 'Gráfica de "¿La información es correcta?"'
-                        };
+                            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
 
-                        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-
-                        chart.draw(data, options);                   
-                }
-            });
+                            chart.draw(data, options);                   
+                    }
+                });
+            <?php
+            }
+            ?>
 
             
         }
