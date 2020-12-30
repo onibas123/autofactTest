@@ -68,7 +68,7 @@
 
                 <div class="tab-content" id="myTabContent">
 
-                    <div class="tab-pane fade show active" id="form" role="tabpanel" aria-labelledby="form-tab">
+                    <div class="tab-pane fade active" id="form" role="tabpanel" aria-labelledby="form-tab">
                         <br>
                         <fieldset>
                             <legend>Formulario <?php echo $form[0]['form']?></legend>
@@ -278,25 +278,44 @@
                 dataType: 'json',
                 success: function(response)
                 {
+                    
+                    let SI = 0;
+                    let NO = 0;
+                    let MAS = 0;
+
+                    if(response['SI'] != null)
+                        SI = response['SI'][0]['count_answer'];
+                    
+                    if(response['NO'] != null && response['NO'].length > 0)
+                        NO = response['NO'][0]['count_answer'];
+
+                    if(response['MAS'] != null && response['MAS'].length > 0)
+                        MAS = response['MAS'][0]['count_answer'];
+
+                    SI = parseInt(SI);
+                    NO = parseInt(NO);
+                    MAS = parseInt(MAS);
+
                     //por tiempo no alcanzo a parsear los datos asi q lo dejo en duro...
-                    console.log(response);                    
+
+                    var data = google.visualization.arrayToDataTable([
+                        ['Pregunta', 'Cantidad'],
+                        ['SI',     SI],
+                        ['NO',      NO],
+                        ['Más o Menos',  MAS]
+                    ]);
+
+                        var options = {
+                        title: 'Gráfica de "¿La información es correcta?"'
+                        };
+
+                        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+                        chart.draw(data, options);                   
                 }
             });
 
-            var data = google.visualization.arrayToDataTable([
-            ['Pregunta', 'Cantidad'],
-            ['SI',     11],
-            ['NO',      2],
-            ['Más o Menos',  2]
-            ]);
-
-            var options = {
-            title: 'Gráfica de "¿La información es correcta?"'
-            };
-
-            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-
-            chart.draw(data, options);
+            
         }
     </script>
 </body>
