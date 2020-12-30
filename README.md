@@ -36,6 +36,13 @@
 	1) email: admin@gmail.com, password: admin
 	2) email: usuario1@gmail.com, password: usuario1
 
+## Test Forms to send once a month
+	- To test this, you only need to change months or year in register of "answers" table in db, example:
+	id	question_number	answer		forms_questions_id	users_id	created
+	1	1				nada mas	1					1			2020-12-30 01:04:42
+																-> change "2020-12" for "2020-11" in the three question registers and then reload the main page & you can see again the form.
+	If you want to see this, you can truncate table "answers".
+
 ## To do:
 	- Implements token security to WEB & API.
 	
