@@ -21,6 +21,8 @@ class Answers extends REST_Controller {
     */
 	public function index_get($id = 0)
 	{
+        $id = trim($this->input->get('id', TRUE));
+        
         if(!empty($id)){
             $data = $this->db->get_where("answers", ['id' => $id])->row_array();
         }else{
