@@ -32,7 +32,7 @@
                             <div class="input-group">
 
                               <label for="input-email" class="input-group-addon"></label>
-                              <input type="email" class="form-control" id="input-email" name="input-email" placeholder="Usuario" required>
+                              <input type="email" class="form-control" id="input-email" name="input-email" placeholder="Email" required>
                               
                             </div>
                           </div> <!-- /.form-group -->
